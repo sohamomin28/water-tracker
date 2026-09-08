@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autumn Water Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Karla:wght@400;500;700&display=swap');
+
+  :root{
+    --bark: #4a2e1f;
+    --rust: #b6501f;
+    --pumpkin: #d67a2c;
+    --gold: #d9a441;
+    --cream: #f5ead9;
+    --parchment: #efe1c8;
+    --leaf-green: #7a7a34;
+    --empty: #e4d3b6;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: radial-gradient(ellipse at top, #f2dcb8 0%, var(--cream) 45%, #e7d2ab 100%);
+    font-family: 'Karla', sans-serif;
+    color: var(--bark);
+    overflow-x: hidden;
+  }
+
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 48px 24px 64px;
+    position: relative;
+  }
+
+  /* falling leaves */
+  .leaf {
+    position: fixed;
+    top: -40px;
+    font-size: 20px;
+    opacity: 0.55;
+    animation: fall linear infinite;
+    pointer-events: none;
+    z-index: 0;
+    user-select: none;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(-5vh) translateX(0) rotate(0deg); }
+    50%  { transform: translateY(50vh) translateX(20px) rotate(180deg); }
+    100% { transform: translateY(105vh) translateX(-10px) rotate(360deg); }
+  }
+
+  header {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 8px;
+  }
+
+  .eyebrow {
+    font-family: 'Karla', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    color: var(--rust);
+    margin: 0 0 6px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(32px, 7vw, 46px);
+    margin: 0 0 6px;
+    line-height: 1.05;
+    color: var(--bark);
+  }
+
+  .sub {
+    font-size: 15px;
+    color: #6b5541;
+    margin: 0 0 28px;
+  }
+
+  .progress-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .progress-count {
+    font-family: 'Fraunces', serif;
+    font-size: 56px;
+    font-weight: 700;
+    color: var(--rust);
+    line-height: 1;
+  }
+
+  .progress-of {
+    font-size: 18px;
+    color: #8a7357;
+  }
+
+  .progress-label {
+    text-align: center;
+    font-size: 14px;
+    color: #8a7357;
+    margin-bottom: 28px;
+    min-height: 20px;
+  }
+
+  .track-outer {
+    height: 10px;
+    border-radius: 6px;
+    background: var(--empty);
+    overflow: hidden;
+    margin: 0 auto 36px;
+    max-width: 420px;
+    box-shadow: inset 0 1px 2px rgba(74,46,31,0.25);
+    position: relative;
+    z-index: 1;
+  }
+
+  .track-inner {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--rust));
+    width: 0%;
+    transition: width 0.5s cubic-bezier(.4,1.4,.6,1);
+    border-radius: 6px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 420px) {
+    .grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  }
+
+  .glass-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .glass-btn svg {
+    width: 100%;
+    height: auto;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(0 2px 3px rgba(74,46,31,0.15));
+  }
+
+  .glass-btn:active svg {
+    transform: scale(0.92);
+  }
+
+  .glass-num {
+    font-size: 12px;
+    color: #9c8464;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .glass-btn.filled .glass-num {
+    color: var(--rust);
+    font-weight: 700;
+  }
+
+  .water-fill {
+    transition: y 0.6s cubic-bezier(.4,1.4,.6,1), height 0.6s cubic-bezier(.4,1.4,.6,1);
+  }
+
+  footer {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .reset-btn {
+    font-family: 'Karla', sans-serif;
+    font-size: 13px;
+    color: #9c8464;
+    background: none;
+    border: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    padding: 8px;
+  }
+  .reset-btn:hover { color: var(--rust); }
+
+  .celebrate {
+    text-align: center;
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    color: var(--rust);
+    margin-bottom: 20px;
+    min-height: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .loading-note {
+    text-align: center;
+    font-size: 13px;
+    color: #9c8464;
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">today's harvest</p>
+    <h1>Sip by sip</h1>
+    <p class="sub">Track twelve glasses as the day turns gold.</p>
+  </header>
+
+  <div class="progress-row">
+    <span class="progress-count" id="count">0</span>
+    <span class="progress-of">/ 12 glasses</span>
+  </div>
+  <p class="progress-label" id="progressLabel"></p>
+
+  <div class="track-outer">
+    <div class="track-inner" id="trackInner"></div>
+  </div>
+
+  <p class="celebrate" id="celebrate"></p>
+  <p class="loading-note" id="loadingNote">loading today's glasses...</p>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    <button class="reset-btn" id="resetBtn">reset today</button>
+  </footer>
+</div>
+
+<script>
+const TOTAL = 12;
+const grid = document.getElementById('grid');
+const countEl = document.getElementById('count');
+const trackInner = document.getElementById('trackInner');
+const progressLabel = document.getElementById('progressLabel');
+const celebrate = document.getElementById('celebrate');
+const resetBtn = document.getElementById('resetBtn');
+const loadingNote = document.getElementById('loadingNote');
+
+function todayKey() {
+  const d = new Date();
+  return 'water:' + d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+}
+
+let filled = new Array(TOTAL).fill(false);
+
+const leafEmojis = ['🍂','🍁','🍃'];
+function spawnLeaves() {
+  const bg = document.createElement('div');
+  for (let i = 0; i < 10; i++) {
+    const leaf = document.createElement('div');
+    leaf.className = 'leaf';
+    leaf.textContent = leafEmojis[Math.floor(Math.random()*leafEmojis.length)];
+    leaf.style.left = Math.random()*100 + 'vw';
+    leaf.style.animationDuration = (10 + Math.random()*10) + 's';
+    leaf.style.animationDelay = (Math.random()*10) + 's';
+    leaf.style.fontSize = (14 + Math.random()*14) + 'px';
+    document.body.appendChild(leaf);
+  }
+}
+spawnLeaves();
+
+function glassSVG(index, isFilled) {
+  const fillHeight = isFilled ? 46 : 0;
+  const fillY = 62 - fillHeight;
+  const waterColor = ['#d67a2c','#c76425','#b6501f'][index % 3];
+  return `
+  <svg viewBox="0 0 60 70" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <clipPath id="clip${index}">
+        <path d="M14 6 L46 6 L41 62 Q30 68 19 62 Z" />
+      </clipPath>
+    </defs>
+    <path d="M14 6 L46 6 L41 62 Q30 68 19 62 Z" fill="${isFilled ? '#fbf3e3' : '#f7ecd8'}" stroke="#c9a877" stroke-width="1.5"/>
+    <rect class="water-fill" x="10" y="${fillY}" width="40" height="${fillHeight}" fill="${waterColor}" clip-path="url(#clip${index})" opacity="0.88"/>
+    <path d="M14 6 L46 6 L41 62 Q30 68 19 62 Z" fill="none" stroke="#c9a877" stroke-width="1.5"/>
+    <ellipse cx="30" cy="6" rx="16" ry="2.4" fill="none" stroke="#c9a877" stroke-width="1.5"/>
+  </svg>`;
+}
+
+function render() {
+  grid.innerHTML = '';
+  filled.forEach((isFilled, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'glass-btn' + (isFilled ? ' filled' : '');
+    btn.innerHTML = glassSVG(i, isFilled) + `<span class="glass-num">${i+1}</span>`;
+    btn.addEventListener('click', () => toggleGlass(i));
+    grid.appendChild(btn);
+  });
+
+  const total = filled.filter(Boolean).length;
+  countEl.textContent = total;
+  trackInner.style.width = (total / TOTAL * 100) + '%';
+
+  const messages = [
+    "not yet started",
+    "first sip of the day",
+    "a good start",
+    "keeping pace",
+    "quarter way there",
+    "steady going",
+    "halfway through the day",
+    "more than halfway",
+    "well hydrated",
+    "almost at the harvest",
+    "one glass to go",
+    "the last glass",
+    "twelve for twelve — well done"
+  ];
+  progressLabel.textContent = messages[total];
+
+  celebrate.textContent = total === TOTAL ? "🍁 you've filled every glass today 🍁" : "";
+}
+
+function toggleGlass(i) {
+  filled[i] = !filled[i];
+  save();
+  render();
+}
+
+async function save() {
+  try {
+    await window.storage.set(todayKey(), JSON.stringify(filled), false);
+  } catch (e) {
+    console.error('Could not save progress', e);
+  }
+}
+
+async function load() {
+  try {
+    const result = await window.storage.get(todayKey(), false);
+    if (result && result.value) {
+      const parsed = JSON.parse(result.value);
+      if (Array.isArray(parsed) && parsed.length === TOTAL) {
+        filled = parsed;
+      }
+    }
+  } catch (e) {
+    // no saved data yet for today, that's fine
+  } finally {
+    loadingNote.style.display = 'none';
+    render();
+  }
+}
+
+resetBtn.addEventListener('click', () => {
+  filled = new Array(TOTAL).fill(false);
+  save();
+  render();
+});
+
+load();
+</script>
+
+</body>
+</html>
